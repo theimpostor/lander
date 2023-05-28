@@ -45,9 +45,10 @@ function initShip() {
 
 function drawTriangle(a, b, c, fillStyle) {
   ctx.beginPath();
-  // TODO: draw a triange from three points a, b, and c.
-  // points are arrays, [0] - x coordinate, [1] - y coordinate
-  // see ctx.moveTo and ctx.lineTo
+  // draw a triange from three points a, b, and c.
+  ctx.moveTo(a[0], a[1]);
+  ctx.lineTo(b[0], b[1]);
+  ctx.lineTo(c[0], c[1]);
   ctx.closePath();
   ctx.fillStyle = fillStyle;
   ctx.fill();
@@ -91,6 +92,9 @@ function drawShip() {
 }
 
 function updateShip() {
+
+  ship.dy += gravity;
+
   // TODO: update ship.dx, dy
   // what forces acting on the ship?
   // - left, right, main thruster
