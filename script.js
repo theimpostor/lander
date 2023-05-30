@@ -92,14 +92,23 @@ function drawShip() {
 }
 
 function updateShip() {
-
+  // gravity is always acting on the ship
   ship.dy += gravity;
 
-  // TODO: update ship.dx, dy
-  // what forces acting on the ship?
-  // - left, right, main thruster
-  // - gravity
-  // TODO: update the position - how does dx, dy affect x, y?
+  // what other forces acting on the ship?
+  if (ship.rightEngine) {
+    ship.dx -= sideEngineThrust;
+  }
+  if (ship.leftEngine) {
+    ship.dx += sideEngineThrust;
+  }
+  if (ship.mainEngine) {
+    ship.dy -= mainEngineThrust;
+  }
+
+  // after calculating velocity, update our position
+  ship.x += ship.dx;
+  ship.y += ship.dy;
 }
 
 function checkCollision() {
@@ -107,10 +116,19 @@ function checkCollision() {
   const bottom = ship.y + ship.h / 2;
   const left = ship.x - ship.w / 2;
   const right = ship.x + ship.w / 2;
-  // TODO: check that ship flew out of bounds. If so, set ship.crashed = true
-
-  // TODO: check if ship landed. If so, set ship.landed = true
-  // - What conditions have to be true for a soft landing?
+  if (left < 0 || right > canvas.width || top < 0 || bottom > canvas.height) {
+    ship.crashed = true;
+    return;
+  }
+  if (
+    ship.dy < 0.2 &&
+    ship.dx < 0.2 &&
+    bottom > canvas.height - 5 &&
+    bottom < canvas.height
+  ) {
+    ship.landed = true;
+    return;
+  }
 }
 
 function gameLoop() {
