@@ -10,6 +10,15 @@ canvas.height = 400;
 const gravity = 0.01;
 const sideEngineThrust = 0.01;
 const mainEngineThrust = 0.03;
+const platform = {
+  color: "blue",
+  // height, width
+  w: 20,
+  h: 5,
+  // position
+  x: 0,
+  y: 0,
+};
 
 const ship = {
   color: "black",
@@ -41,6 +50,17 @@ function initShip() {
   ship.rightEngine = false;
   ship.crashed = false;
   ship.landed = false;
+}
+
+function initPlatform() {
+  // place randomly somwhere near the bottom near the center
+  platform.x = Math.floor(Math.random() * 200) + 100;
+  platform.y = Math.floor(Math.random() * 50) + 340;
+}
+
+function drawPlatform() {
+  ctx.fillStyle = platform.color;
+  ctx.fillRect(platform.x, platform.y, platform.w, platform.h);
 }
 
 function drawTriangle(a, b, c, fillStyle) {
@@ -145,6 +165,7 @@ function gameLoop() {
     // Clear entire screen
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawShip();
+    drawPlatform();
     requestAnimationFrame(gameLoop);
   }
 }
@@ -190,6 +211,7 @@ function start() {
   startBtn.disabled = true;
   statusDiv.innerHTML = "";
   initShip();
+  initPlatform();
 
   document.addEventListener("keyup", keyLetGo);
   document.addEventListener("keydown", keyPressed);
