@@ -10,14 +10,20 @@ canvas.height = 400;
 const gravity = 0.01;
 const sideEngineThrust = 0.01;
 const mainEngineThrust = 0.03;
+const lzBuffer = 2;
 const platform = {
   color: "blue",
   // height, width
   w: 20,
   h: 5,
-  // position
+  // position (top left corner)
   x: 0,
   y: 0,
+  // landing zone - spot above platform where ship center must line up with to land
+  lz: {
+    x: 0,
+    y: 0,
+  },
 };
 
 const ship = {
@@ -25,7 +31,7 @@ const ship = {
   // height, width
   w: 8,
   h: 22,
-  // position
+  // position (of ship center)
   x: 0,
   y: 0,
   // velocity
@@ -56,11 +62,22 @@ function initPlatform() {
   // place randomly somwhere near the bottom near the center
   platform.x = Math.floor(Math.random() * 200) + 100;
   platform.y = Math.floor(Math.random() * 50) + 340;
+
+  // landing zone x coordinate is middle of platform
+  platform.lz.x = platform.x + platform.w / 2;
+
+  // landing zone y coordinate half ship height above platform + landing zone buffer
+  platform.lz.y = platform.y - ship.h / 2 - lzBuffer;
 }
 
 function drawPlatform() {
   ctx.fillStyle = platform.color;
   ctx.fillRect(platform.x, platform.y, platform.w, platform.h);
+}
+
+// calculates the distance between two points
+function distanceBetween(a, b) {
+  return Math.sqrt(Math.pow(a[0] - b[0], 2) + Math.pow(a[1] - b[1], 2));
 }
 
 function drawTriangle(a, b, c, fillStyle) {
@@ -141,10 +158,10 @@ function checkCollision() {
     return;
   }
   if (
-    ship.dy < 0.2 &&
-    ship.dx < 0.2 &&
-    bottom > canvas.height - 5 &&
-    bottom < canvas.height
+    // ship is not moving too fast
+    ship.dy < 0.1 &&
+    ship.dx < 0.1 &&
+    distanceBetween([platform.lz.x, platform.lz.y], [ship.x, ship.y]) < lzBuffer
   ) {
     ship.landed = true;
     return;
