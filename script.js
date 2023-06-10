@@ -100,6 +100,15 @@ function drawTriangle(a, b, c, fillStyle) {
   ctx.fill();
 }
 
+function drawLine(a, b, style) {
+  ctx.beginPath();
+  // draw a triange from three points a, b, and c.
+  ctx.moveTo(a[0], a[1]);
+  ctx.lineTo(b[0], b[1]);
+  ctx.strokeStyle = style;
+  ctx.stroke();
+}
+
 function drawShip() {
   ctx.save();
   ctx.beginPath();
@@ -109,30 +118,44 @@ function drawShip() {
   ctx.fill();
   ctx.closePath();
 
-  // Draw the flame if engine is on
-  if (ship.mainEngine) {
-    drawTriangle(
+  if (ship.landed) {
+    // draw landing struts
+    drawLine(
       [ship.w * -0.5, ship.h * 0.5],
+      [ship.w * -0.5, ship.h * 0.5 + lzBuffer * 2],
+      ship.color
+    );
+    drawLine(
       [ship.w * 0.5, ship.h * 0.5],
-      [0, ship.h * 0.5 + Math.random() * 10],
-      "orange"
+      [ship.w * 0.5, ship.h * 0.5 + lzBuffer * 2],
+      ship.color
     );
-  }
-  if (ship.rightEngine) {
-    drawTriangle(
-      [ship.w * 0.5, ship.h * -0.25],
-      [ship.w * 0.5 + Math.random() * 10, 0],
-      [ship.w * 0.5, ship.h * 0.25],
-      "orange"
-    );
-  }
-  if (ship.leftEngine) {
-    drawTriangle(
-      [ship.w * -0.5, ship.h * -0.25],
-      [ship.w * -0.5 - Math.random() * 10, 0],
-      [ship.w * -0.5, ship.h * 0.25],
-      "orange"
-    );
+  } else {
+    // Draw the flame if engine is on
+    if (ship.mainEngine) {
+      drawTriangle(
+        [ship.w * -0.5, ship.h * 0.5],
+        [ship.w * 0.5, ship.h * 0.5],
+        [0, ship.h * 0.5 + Math.random() * 10],
+        "orange"
+      );
+    }
+    if (ship.rightEngine) {
+      drawTriangle(
+        [ship.w * 0.5, ship.h * -0.25],
+        [ship.w * 0.5 + Math.random() * 10, 0],
+        [ship.w * 0.5, ship.h * 0.25],
+        "orange"
+      );
+    }
+    if (ship.leftEngine) {
+      drawTriangle(
+        [ship.w * -0.5, ship.h * -0.25],
+        [ship.w * -0.5 - Math.random() * 10, 0],
+        [ship.w * -0.5, ship.h * 0.25],
+        "orange"
+      );
+    }
   }
   ctx.restore();
 }
@@ -202,6 +225,9 @@ function gameLoop() {
     endGame();
   } else if (ship.landed) {
     statusDiv.innerHTML = "LANDED - you win!";
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawShip();
+    drawPlatform();
     endGame();
   } else {
     // Clear entire screen
