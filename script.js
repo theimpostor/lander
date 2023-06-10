@@ -24,6 +24,10 @@ const platform = {
     x: 0,
     y: 0,
   },
+  top: 0,
+  bottom: 0,
+  left: 0,
+  right: 0,
 };
 
 const ship = {
@@ -68,6 +72,11 @@ function initPlatform() {
 
   // landing zone y coordinate half ship height above platform + landing zone buffer
   platform.lz.y = platform.y - ship.h / 2 - lzBuffer;
+
+  platform.top = platform.y;
+  platform.bottom = platform.y + platform.h;
+  platform.left = platform.x;
+  platform.right = platform.x + platform.w;
 }
 
 function drawPlatform() {
@@ -153,14 +162,30 @@ function checkCollision() {
   const bottom = ship.y + ship.h / 2;
   const left = ship.x - ship.w / 2;
   const right = ship.x + ship.w / 2;
+
+  // check if hit the canvas walls
   if (left < 0 || right > canvas.width || top < 0 || bottom > canvas.height) {
     ship.crashed = true;
     return;
   }
+
+  // check if hit platform
+  const notOverlappingPlatform =
+    bottom < platform.top ||
+    left > platform.right ||
+    right < platform.left ||
+    top > platform.bottom;
+  if (!notOverlappingPlatform) {
+    // crashed into the platform!
+    ship.crashed = true;
+    return;
+  }
+
   if (
     // ship is not moving too fast
     ship.dy < 0.1 &&
     ship.dx < 0.1 &&
+    // ship is in the landing zone
     distanceBetween([platform.lz.x, platform.lz.y], [ship.x, ship.y]) < lzBuffer
   ) {
     ship.landed = true;
