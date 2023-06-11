@@ -86,7 +86,7 @@ function drawTriangle(a, b, c, fillStyle) {
 
 function drawLine(a, b, style) {
   ctx.beginPath();
-  // draw a triange from three points a, b, and c.
+  // draw a line from a to b
   ctx.moveTo(a[0], a[1]);
   ctx.lineTo(b[0], b[1]);
   ctx.strokeStyle = style;
