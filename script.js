@@ -10,7 +10,7 @@ canvas.height = 400;
 const gravity = 0.01;
 const sideEngineThrust = 0.01;
 const mainEngineThrust = 0.03;
-const lzBuffer = 2;
+const lzBuffer = 4;
 const platform = {
   color: "blue",
   // height, width
@@ -19,11 +19,6 @@ const platform = {
   // position (top left corner)
   x: 0,
   y: 0,
-  // landing zone - spot above platform where ship center must line up with to land
-  lz: {
-    x: 0,
-    y: 0,
-  },
   top: 0,
   bottom: 0,
   left: 0,
@@ -67,12 +62,6 @@ function initPlatform() {
   platform.x = Math.floor(Math.random() * 200) + 100;
   platform.y = Math.floor(Math.random() * 50) + 340;
 
-  // landing zone x coordinate is middle of platform
-  platform.lz.x = platform.x + platform.w / 2;
-
-  // landing zone y coordinate half ship height above platform + landing zone buffer
-  platform.lz.y = platform.y - ship.h / 2 - lzBuffer;
-
   platform.top = platform.y;
   platform.bottom = platform.y + platform.h;
   platform.left = platform.x;
@@ -82,11 +71,6 @@ function initPlatform() {
 function drawPlatform() {
   ctx.fillStyle = platform.color;
   ctx.fillRect(platform.x, platform.y, platform.w, platform.h);
-}
-
-// calculates the distance between two points
-function distanceBetween(a, b) {
-  return Math.sqrt(Math.pow(a[0] - b[0], 2) + Math.pow(a[1] - b[1], 2));
 }
 
 function drawTriangle(a, b, c, fillStyle) {
@@ -122,12 +106,12 @@ function drawShip() {
     // draw landing struts
     drawLine(
       [ship.w * -0.5, ship.h * 0.5],
-      [ship.w * -0.5, ship.h * 0.5 + lzBuffer * 2],
+      [ship.w * -0.5, ship.h * 0.5 + lzBuffer],
       ship.color
     );
     drawLine(
       [ship.w * 0.5, ship.h * 0.5],
-      [ship.w * 0.5, ship.h * 0.5 + lzBuffer * 2],
+      [ship.w * 0.5, ship.h * 0.5 + lzBuffer],
       ship.color
     );
   } else {
@@ -208,8 +192,13 @@ function checkCollision() {
     // ship is not moving too fast
     ship.dy < 0.1 &&
     ship.dx < 0.1 &&
-    // ship is in the landing zone
-    distanceBetween([platform.lz.x, platform.lz.y], [ship.x, ship.y]) < lzBuffer
+    // ship is between the platform
+    platform.left <= left &&
+    right <= platform.right &&
+    // the ship is above the platform
+    bottom < platform.top &&
+    // the ship is within lzBuffer distance above the platform
+    platform.top - bottom < lzBuffer
   ) {
     ship.landed = true;
     return;
