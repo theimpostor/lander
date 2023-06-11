@@ -10,6 +10,7 @@ canvas.height = 400;
 const gravity = 0.01;
 const sideEngineThrust = 0.01;
 const mainEngineThrust = 0.03;
+const lzBuffer = 3;
 
 const ship = {
   color: "black",
@@ -28,6 +29,23 @@ const ship = {
   crashed: false,
   landed: false,
 };
+
+const platform = {
+  color: 'blue',
+  w: 20,
+  h: 5,
+  x: 190,
+  y: 345,
+  top: 345,
+  bottom: 350,
+  left: 190,
+  right: 210
+}
+
+function drawPlatform() {
+  ctx.fillStyle = platform.color;
+  ctx.fillRect(platform.x, platform.y, platform.w, platform.h);
+}
 
 function initShip() {
   // position
@@ -116,10 +134,37 @@ function checkCollision() {
   const bottom = ship.y + ship.h / 2;
   const left = ship.x - ship.w / 2;
   const right = ship.x + ship.w / 2;
-  // TODO: check that ship flew out of bounds. If so, set ship.crashed = true
 
-  // TODO: check if ship landed. If so, set ship.landed = true
+  // check that ship flew out of bounds. If so, set ship.crashed = true
+  if (top < 0 || bottom > canvas.height || left < 0 || right > canvas.width) {
+    ship.crashed = true;
+    return;
+  }
+
+  // check that ship hit the platform
+  const isNotOverlappingPlatform = 
+    bottom < platform.top ||
+    top > platform.bottom ||
+    left > platform.right ||
+    right < platform.left;
+  if (!isNotOverlappingPlatform) {
+    ship.crashed = true;
+    return;
+  }
+
+  // check if ship landed. If so, set ship.landed = true
   // - What conditions have to be true for a soft landing?
+  if (
+    ship.dx < 0.2 &&
+    ship.dy < 0.2 &&
+    left > platform.left &&
+    right < platform.right &&
+    bottom < platform.top &&
+    platform.top - bottom < lzBuffer
+    ) {
+      ship.landed = true;
+      return;
+    }
 }
 
 function gameLoop() {
@@ -136,6 +181,7 @@ function gameLoop() {
     // Clear entire screen
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawShip();
+    drawPlatform();
     requestAnimationFrame(gameLoop);
   }
 }
