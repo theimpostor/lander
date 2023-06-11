@@ -95,11 +95,20 @@ function updateShip() {
 
   ship.dy += gravity;
 
-  // TODO: update ship.dx, dy
-  // what forces acting on the ship?
-  // - left, right, main thruster
-  // - gravity
-  // TODO: update the position - how does dx, dy affect x, y?
+  // what other forces acting on the ship?
+  if (ship.rightEngine) {
+    ship.dx -= sideEngineThrust;
+  }
+  if (ship.leftEngine) {
+    ship.dx += sideEngineThrust;
+  }
+  if (ship.mainEngine) {
+    ship.dy -= mainEngineThrust;
+  }
+
+  // after calculating velocity, update our position
+  ship.x += ship.dx;
+  ship.y += ship.dy;
 }
 
 function checkCollision() {
