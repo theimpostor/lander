@@ -11,6 +11,33 @@ const gravity = 0.01;
 const sideEngineThrust = 0.01;
 const mainEngineThrust = 0.03;
 const lzBuffer = 4;
+const meteors = [
+  {
+    color: "brown",
+    // height, width
+    w: 4,
+    h: 4,
+    // position (top left corner)
+    x: 0,
+    y: Math.random() * 100,
+    // velocity
+    dx: Math.random() * 2,
+    dy: Math.random(),
+  },
+  {
+    color: "brown",
+    // height, width
+    w: 4,
+    h: 4,
+    // position (top left corner)
+    x: 0,
+    y: Math.random() * 100,
+    // velocity
+    dx: Math.random() * 2,
+    dy: Math.random(),
+  },
+];
+
 const platform = {
   color: "blue",
   // height, width
@@ -71,6 +98,13 @@ function initPlatform() {
 function drawPlatform() {
   ctx.fillStyle = platform.color;
   ctx.fillRect(platform.x, platform.y, platform.w, platform.h);
+}
+
+function drawMeteors() {
+  for (let i = 0; i < meteors.length; i++) {
+    ctx.fillStyle = meteors[i].color;
+    ctx.fillRect(meteors[i].x, meteors[i].y, meteors[i].w, meteors[i].h);
+  }
 }
 
 function drawTriangle(a, b, c, fillStyle) {
@@ -144,6 +178,15 @@ function drawShip() {
   ctx.restore();
 }
 
+function updateMeteors() {
+  for (let i = 0; i < meteors.length; i++) {
+    meteors[i].dy += gravity;
+    // after calculating velocity, update our position
+    meteors[i].x += meteors[i].dx;
+    meteors[i].y += meteors[i].dy;
+  }
+}
+
 function updateShip() {
   // gravity is always acting on the ship
   ship.dy += gravity;
@@ -188,6 +231,20 @@ function checkCollision() {
     return;
   }
 
+  // check if hit meteor
+  for (let i = 0; i < meteors.length; i++) {
+    let m = meteors[i];
+    let mTop = m.y;
+    let mBottom = m.y + m.h;
+    let mLeft = m.x;
+    let mRight = m.x + m.w;
+    if (!(bottom < mTop || left > mRight || right < mLeft || top > mBottom)) {
+      // crashed into the meteor!
+      ship.crashed = true;
+      return;
+    }
+  }
+
   if (
     // ship is not moving too fast
     ship.dy < 0.1 &&
@@ -206,6 +263,7 @@ function checkCollision() {
 }
 
 function gameLoop() {
+  updateMeteors();
   updateShip();
 
   checkCollision();
@@ -215,12 +273,14 @@ function gameLoop() {
   } else if (ship.landed) {
     statusDiv.innerHTML = "LANDED - you win!";
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawMeteors();
     drawShip();
     drawPlatform();
     endGame();
   } else {
     // Clear entire screen
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawMeteors();
     drawShip();
     drawPlatform();
     requestAnimationFrame(gameLoop);
