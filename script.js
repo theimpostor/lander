@@ -11,32 +11,8 @@ const gravity = 0.01;
 const sideEngineThrust = 0.01;
 const mainEngineThrust = 0.03;
 const lzBuffer = 4;
-const meteors = [
-  {
-    color: "brown",
-    // height, width
-    w: 4,
-    h: 4,
-    // position (top left corner)
-    x: 0,
-    y: Math.random() * 100,
-    // velocity
-    dx: Math.random() * 2,
-    dy: Math.random(),
-  },
-  {
-    color: "brown",
-    // height, width
-    w: 4,
-    h: 4,
-    // position (top left corner)
-    x: 0,
-    y: Math.random() * 100,
-    // velocity
-    dx: Math.random() * 2,
-    dy: Math.random(),
-  },
-];
+// projectiles
+const prjs = [];
 
 const platform = {
   color: "blue",
@@ -72,8 +48,8 @@ const ship = {
 
 function initShip() {
   // position
-  ship.x = 150 + Math.random() * 100;
-  ship.y = 150 + Math.random() * 100;
+  ship.x = Math.floor(150 + Math.random() * 100);
+  ship.y = Math.floor(150 + Math.random() * 100);
   // velocity
   ship.dx = Math.random();
   ship.dy = Math.random();
@@ -95,15 +71,27 @@ function initPlatform() {
   platform.right = platform.x + platform.w;
 }
 
-function drawPlatform() {
-  ctx.fillStyle = platform.color;
-  ctx.fillRect(platform.x, platform.y, platform.w, platform.h);
-}
-
-function drawMeteors() {
-  for (let i = 0; i < meteors.length; i++) {
-    ctx.fillStyle = meteors[i].color;
-    ctx.fillRect(meteors[i].x, meteors[i].y, meteors[i].w, meteors[i].h);
+function initMeteors() {
+  // truncate existing projectiles
+  prjs.length = 0;
+  for (let i = 0; i < 10; i++) {
+    const prj = {
+      color: "brown",
+      // height, width
+      w: 4,
+      h: 4,
+      // position (top left corner)
+      x: Math.floor(Math.random() * 400),
+      y: 0,
+      // velocity
+      dx: 2 - Math.random() * 4,
+      dy: Math.random() * 3,
+    };
+    prj.top = prj.y;
+    prj.bottom = prj.y + prj.h;
+    prj.left = prj.x;
+    prj.right = prj.x + prj.w;
+    prjs.push(prj);
   }
 }
 
@@ -125,6 +113,18 @@ function drawLine(a, b, style) {
   ctx.lineTo(b[0], b[1]);
   ctx.strokeStyle = style;
   ctx.stroke();
+}
+
+function drawPlatform() {
+  ctx.fillStyle = platform.color;
+  ctx.fillRect(platform.x, platform.y, platform.w, platform.h);
+}
+
+function drawMeteors() {
+  for (let i = 0; i < prjs.length; i++) {
+    ctx.fillStyle = prjs[i].color;
+    ctx.fillRect(prjs[i].x, prjs[i].y, prjs[i].w, prjs[i].h);
+  }
 }
 
 function drawShip() {
@@ -178,15 +178,6 @@ function drawShip() {
   ctx.restore();
 }
 
-function updateMeteors() {
-  for (let i = 0; i < meteors.length; i++) {
-    meteors[i].dy += gravity;
-    // after calculating velocity, update our position
-    meteors[i].x += meteors[i].dx;
-    meteors[i].y += meteors[i].dy;
-  }
-}
-
 function updateShip() {
   // gravity is always acting on the ship
   ship.dy += gravity;
@@ -205,6 +196,20 @@ function updateShip() {
   // after calculating velocity, update our position
   ship.x += ship.dx;
   ship.y += ship.dy;
+}
+
+function updateMeteors() {
+  for (let i = 0; i < prjs.length; i++) {
+    prjs[i].dy += gravity;
+    // after calculating velocity, update our position
+    prjs[i].x += prjs[i].dx;
+    prjs[i].y += prjs[i].dy;
+    // update bounding box
+    prjs[i].top += prjs[i].dy;
+    prjs[i].bottom += prjs[i].dy;
+    prjs[i].left += prjs[i].dx;
+    prjs[i].right += prjs[i].dx;
+  }
 }
 
 function checkCollision() {
@@ -232,13 +237,11 @@ function checkCollision() {
   }
 
   // check if hit meteor
-  for (let i = 0; i < meteors.length; i++) {
-    let m = meteors[i];
-    let mTop = m.y;
-    let mBottom = m.y + m.h;
-    let mLeft = m.x;
-    let mRight = m.x + m.w;
-    if (!(bottom < mTop || left > mRight || right < mLeft || top > mBottom)) {
+  for (let i = 0; i < prjs.length; i++) {
+    let m = prjs[i];
+    if (
+      !(bottom < m.top || left > m.right || right < m.left || top > m.bottom)
+    ) {
       // crashed into the meteor!
       ship.crashed = true;
       return;
@@ -323,12 +326,19 @@ function keyPressed(event) {
   event.preventDefault();
 }
 
+document.addEventListener("keyup", function (event) {
+  if (event.keyCode == 32 /* Space */) {
+    startBtn.click();
+  }
+});
+
 function start() {
   // console.log("start", ship);
   startBtn.disabled = true;
   statusDiv.innerHTML = "";
   initShip();
   initPlatform();
+  initMeteors();
 
   document.addEventListener("keyup", keyLetGo);
   document.addEventListener("keydown", keyPressed);
