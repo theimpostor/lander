@@ -12,6 +12,9 @@ const sideEngineThrust = 0.01;
 const mainEngineThrust = 0.03;
 const lzBuffer = 3;
 
+// Projectiles list
+const prjs = [];
+
 const ship = {
   color: "black",
   // height, width
@@ -59,6 +62,29 @@ function initShip() {
   ship.rightEngine = false;
   ship.crashed = false;
   ship.landed = false;
+}
+
+function drawPrjs() {
+  for (let i= 0; i < prjs.length; i++) {
+    let prj = prjs[i];
+    ctx.fillStyle = prj.color;
+    ctx.fillRect(prj.x, prj.y, prj.w, prj.h);
+  }
+}
+
+function initPrjs() {
+  for (let i = 0; i < 10; i++) {
+    let prj = {
+      x: Math.floor(Math.random() * 400),
+      y: 0,
+      dx: 1 - (Math.random() * 2),
+      dy: Math.random(),
+      h: 4,
+      w: 4,
+      color: 'brown'
+    };
+    prjs.push(prj);
+  }
 }
 
 function drawTriangle(a, b, c, fillStyle) {
@@ -129,6 +155,15 @@ function updateShip() {
   ship.y += ship.dy;
 }
 
+function updatePrjs() {
+  for (let i = 0; i < prjs.length; i++) {
+    let prj = prjs[i];
+    prj.dy += gravity;
+    prj.y += prj.dy;
+    prj.x += prj.dx;
+  }
+}
+
 function checkCollision() {
   const top = ship.y - ship.h / 2;
   const bottom = ship.y + ship.h / 2;
@@ -169,6 +204,7 @@ function checkCollision() {
 
 function gameLoop() {
   updateShip();
+  updatePrjs();
 
   checkCollision();
   if (ship.crashed) {
@@ -180,6 +216,7 @@ function gameLoop() {
   } else {
     // Clear entire screen
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawPrjs();
     drawShip();
     drawPlatform();
     requestAnimationFrame(gameLoop);
@@ -227,6 +264,7 @@ function start() {
   startBtn.disabled = true;
   statusDiv.innerHTML = "";
   initShip();
+  initPrjs();
 
   document.addEventListener("keyup", keyLetGo);
   document.addEventListener("keydown", keyPressed);
