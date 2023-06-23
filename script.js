@@ -72,6 +72,8 @@ function initPlatform() {
 }
 
 function initMeteors() {
+  // truncate existing projectiles
+  prjs.length = 0;
   for (let i = 0; i < 10; i++) {
     const prj = {
       color: "brown",
@@ -82,8 +84,8 @@ function initMeteors() {
       x: Math.floor(Math.random() * 400),
       y: 0,
       // velocity
-      dx: Math.random() * 2 - 1,
-      dy: Math.random() * 1,
+      dx: 2 - Math.random() * 4,
+      dy: Math.random() * 3,
     };
     prj.top = prj.y;
     prj.bottom = prj.y + prj.h;
@@ -197,27 +199,16 @@ function updateShip() {
 }
 
 function updateMeteors() {
-  let j = 0;
   for (let i = 0; i < prjs.length; i++) {
-    let prj = prjs[i];
-    prj.dy += gravity;
+    prjs[i].dy += gravity;
     // after calculating velocity, update our position
-    prj.x += prj.dx;
-    prj.y += prj.dy;
-
-    // remove prjs that are out of bounds
-    if (0 < prj.x && prj.x < 400 && 0 < prj.y && prj.y < 400) {
-      prjs[j++] = prjs[i];
-      // update bounding box
-      prj.top += prj.dy;
-      prj.bottom += prj.dy;
-      prj.left += prj.dx;
-      prj.right += prj.dx;
-    }
-  }
-  prjs.length = j;
-  if (prjs.length < 5) {
-    initMeteors();
+    prjs[i].x += prjs[i].dx;
+    prjs[i].y += prjs[i].dy;
+    // update bounding box
+    prjs[i].top += prjs[i].dy;
+    prjs[i].bottom += prjs[i].dy;
+    prjs[i].left += prjs[i].dx;
+    prjs[i].right += prjs[i].dx;
   }
 }
 
@@ -347,9 +338,6 @@ function start() {
   statusDiv.innerHTML = "";
   initShip();
   initPlatform();
-
-  // truncate existing projectiles
-  prjs.length = 0;
   initMeteors();
 
   document.addEventListener("keyup", keyLetGo);
