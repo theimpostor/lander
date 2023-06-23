@@ -22,10 +22,18 @@ const platform = {
   // position (top left corner)
   x: 0,
   y: 0,
-  top: 0,
-  bottom: 0,
-  left: 0,
-  right: 0,
+  get top() {
+    return this.y;
+  },
+  get bottom() {
+    return this.y + this.h;
+  },
+  get left() {
+    return this.x;
+  },
+  get right() {
+    return this.x + this.w;
+  },
 };
 
 const ship = {
@@ -33,12 +41,24 @@ const ship = {
   // height, width
   w: 8,
   h: 22,
-  // position (of ship center)
+  // position (top left corner)
   x: 0,
   y: 0,
   // velocity
   dx: 0,
   dy: 0,
+  get top() {
+    return this.y;
+  },
+  get bottom() {
+    return this.y + this.h;
+  },
+  get left() {
+    return this.x;
+  },
+  get right() {
+    return this.x + this.w;
+  },
   mainEngine: false,
   leftEngine: false,
   rightEngine: false,
@@ -64,11 +84,6 @@ function initPlatform() {
   // place randomly somwhere near the bottom near the center
   platform.x = Math.floor(Math.random() * 200) + 100;
   platform.y = Math.floor(Math.random() * 50) + 340;
-
-  platform.top = platform.y;
-  platform.bottom = platform.y + platform.h;
-  platform.left = platform.x;
-  platform.right = platform.x + platform.w;
 }
 
 function initMeteors() {
@@ -86,11 +101,19 @@ function initMeteors() {
       // velocity
       dx: 2 - Math.random() * 4,
       dy: Math.random() * 3,
+      get top() {
+        return this.y;
+      },
+      get bottom() {
+        return this.y + this.h;
+      },
+      get left() {
+        return this.x;
+      },
+      get right() {
+        return this.x + this.w;
+      },
     };
-    prj.top = prj.y;
-    prj.bottom = prj.y + prj.h;
-    prj.left = prj.x;
-    prj.right = prj.x + prj.w;
     prjs.push(prj);
   }
 }
@@ -130,7 +153,7 @@ function drawMeteors() {
 function drawShip() {
   ctx.save();
   ctx.beginPath();
-  ctx.translate(ship.x, ship.y);
+  ctx.translate(ship.x + ship.w * 0.5, ship.y + ship.h * 0.5);
   ctx.rect(ship.w * -0.5, ship.h * -0.5, ship.w, ship.h);
   ctx.fillStyle = ship.color;
   ctx.fill();
@@ -204,33 +227,31 @@ function updateMeteors() {
     // after calculating velocity, update our position
     prjs[i].x += prjs[i].dx;
     prjs[i].y += prjs[i].dy;
-    // update bounding box
-    prjs[i].top += prjs[i].dy;
-    prjs[i].bottom += prjs[i].dy;
-    prjs[i].left += prjs[i].dx;
-    prjs[i].right += prjs[i].dx;
   }
 }
 
-function checkCollision() {
-  const top = ship.y - ship.h / 2;
-  const bottom = ship.y + ship.h / 2;
-  const left = ship.x - ship.w / 2;
-  const right = ship.x + ship.w / 2;
+function isOverlap(a, b) {
+  return !(
+    a.bottom < b.top ||
+    a.left > b.right ||
+    a.right < b.left ||
+    a.top > b.bottom
+  );
+}
 
+function checkCollision() {
   // check if hit the canvas walls
-  if (left < 0 || right > canvas.width || top < 0 || bottom > canvas.height) {
+  if (
+    ship.left < 0 ||
+    ship.right > canvas.width ||
+    ship.top < 0 ||
+    ship.bottom > canvas.height
+  ) {
     ship.crashed = true;
     return;
   }
 
-  // check if hit platform
-  const notOverlappingPlatform =
-    bottom < platform.top ||
-    left > platform.right ||
-    right < platform.left ||
-    top > platform.bottom;
-  if (!notOverlappingPlatform) {
+  if (isOverlap(ship, platform)) {
     // crashed into the platform!
     ship.crashed = true;
     return;
@@ -238,10 +259,7 @@ function checkCollision() {
 
   // check if hit meteor
   for (let i = 0; i < prjs.length; i++) {
-    let m = prjs[i];
-    if (
-      !(bottom < m.top || left > m.right || right < m.left || top > m.bottom)
-    ) {
+    if (isOverlap(ship, prjs[i])) {
       // crashed into the meteor!
       ship.crashed = true;
       return;
@@ -253,12 +271,12 @@ function checkCollision() {
     ship.dy < 0.1 &&
     ship.dx < 0.1 &&
     // ship is between the platform
-    platform.left <= left &&
-    right <= platform.right &&
+    platform.left <= ship.left &&
+    ship.right <= platform.right &&
     // the ship is above the platform
-    bottom < platform.top &&
+    ship.bottom < platform.top &&
     // the ship is within lzBuffer distance above the platform
-    platform.top - bottom < lzBuffer
+    platform.top - ship.bottom < lzBuffer
   ) {
     ship.landed = true;
     return;
