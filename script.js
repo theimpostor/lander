@@ -14,57 +14,41 @@ const lzBuffer = 4;
 // projectiles
 const prjs = [];
 
-const platform = {
-  color: "blue",
-  // height, width
-  w: 20,
-  h: 5,
-  // position (top left corner)
-  x: 0,
-  y: 0,
+class Rect {
+  constructor(x, y, w, h) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+  }
   get top() {
     return this.y;
-  },
+  }
   get bottom() {
     return this.y + this.h;
-  },
+  }
   get left() {
     return this.x;
-  },
+  }
   get right() {
     return this.x + this.w;
-  },
-};
+  }
+  // returns true if this Rect overlaps the other Rect
+  overlaps(other) {
+    return !(
+      this.bottom < other.top ||
+      this.left > other.right ||
+      this.right < other.left ||
+      this.top > other.bottom
+    );
+  }
+}
 
-const ship = {
-  color: "black",
-  // height, width
-  w: 8,
-  h: 22,
-  // position (top left corner)
-  x: 0,
-  y: 0,
-  // velocity
-  dx: 0,
-  dy: 0,
-  get top() {
-    return this.y;
-  },
-  get bottom() {
-    return this.y + this.h;
-  },
-  get left() {
-    return this.x;
-  },
-  get right() {
-    return this.x + this.w;
-  },
-  mainEngine: false,
-  leftEngine: false,
-  rightEngine: false,
-  crashed: false,
-  landed: false,
-};
+const platform = new Rect(0, 0, 20, 5);
+platform.color = "blue";
+
+const ship = new Rect(0, 0, 8, 22);
+ship.color = "black";
 
 function initShip() {
   // position
@@ -90,30 +74,11 @@ function initMeteors() {
   // truncate existing projectiles
   prjs.length = 0;
   for (let i = 0; i < 10; i++) {
-    const prj = {
-      color: "brown",
-      // height, width
-      w: 4,
-      h: 4,
-      // position (top left corner)
-      x: Math.floor(Math.random() * 400),
-      y: 0,
-      // velocity
-      dx: 2 - Math.random() * 4,
-      dy: Math.random() * 3,
-      get top() {
-        return this.y;
-      },
-      get bottom() {
-        return this.y + this.h;
-      },
-      get left() {
-        return this.x;
-      },
-      get right() {
-        return this.x + this.w;
-      },
-    };
+    const prj = new Rect(Math.floor(Math.random() * 400), 0, 4, 4);
+    prj.color = "brown";
+    // velocity
+    prj.dx = 2 - Math.random() * 4;
+    prj.dy = Math.random() * 3;
     prjs.push(prj);
   }
 }
@@ -230,15 +195,6 @@ function updateMeteors() {
   }
 }
 
-function isOverlap(a, b) {
-  return !(
-    a.bottom < b.top ||
-    a.left > b.right ||
-    a.right < b.left ||
-    a.top > b.bottom
-  );
-}
-
 function checkCollision() {
   // check if hit the canvas walls
   if (
@@ -251,7 +207,7 @@ function checkCollision() {
     return;
   }
 
-  if (isOverlap(ship, platform)) {
+  if (ship.overlaps(platform)) {
     // crashed into the platform!
     ship.crashed = true;
     return;
@@ -259,7 +215,7 @@ function checkCollision() {
 
   // check if hit meteor
   for (let i = 0; i < prjs.length; i++) {
-    if (isOverlap(ship, prjs[i])) {
+    if (ship.overlaps(prjs[i])) {
       // crashed into the meteor!
       ship.crashed = true;
       return;
