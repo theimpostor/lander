@@ -33,6 +33,9 @@ class Rect {
   get right() {
     return this.x + this.w;
   }
+  get center() {
+    return { x: this.x + this.w * 0.5, y: this.y + this.h * 0.5 };
+  }
   // returns true if this Rect overlaps the other Rect
   overlaps(other) {
     return !(
@@ -44,10 +47,10 @@ class Rect {
   }
 }
 
-const platform = new Rect(0, 0, 20, 5);
+const platform = new Rect(-100, -100, 20, 5);
 platform.color = "blue";
 
-const ship = new Rect(0, 0, 8, 22);
+const ship = new Rect(-100, -100, 8, 22);
 ship.color = "black";
 
 function initShip() {
@@ -118,7 +121,7 @@ function drawMeteors() {
 function drawShip() {
   ctx.save();
   ctx.beginPath();
-  ctx.translate(ship.x + ship.w * 0.5, ship.y + ship.h * 0.5);
+  ctx.translate(ship.center.x, ship.center.y);
   ctx.rect(ship.w * -0.5, ship.h * -0.5, ship.w, ship.h);
   ctx.fillStyle = ship.color;
   ctx.fill();
@@ -187,12 +190,20 @@ function updateShip() {
 }
 
 function updateMeteors() {
+  let j = 0;
   for (let i = 0; i < prjs.length; i++) {
-    prjs[i].dy += gravity;
+    let prj = prjs[i];
+    prj.dy += gravity;
     // after calculating velocity, update our position
-    prjs[i].x += prjs[i].dx;
-    prjs[i].y += prjs[i].dy;
+    prj.x += prj.dx;
+    prj.y += prj.dy;
+
+    // if it's still on screen, keep it in the list
+    if (0 <= prj.x && prj.x <= canvas.width && prj.y <= canvas.height) {
+      prjs[j++] = prj;
+    }
   }
+  prjs.length = j;
 }
 
 function checkCollision() {
@@ -240,28 +251,50 @@ function checkCollision() {
 }
 
 function gameLoop() {
-  updateMeteors();
-  updateShip();
+  if (startBtn.disabled) {
+    // game is running
+    updateMeteors();
+    updateShip();
 
-  checkCollision();
-  if (ship.crashed) {
-    statusDiv.innerHTML = "GAME OVER - crashed";
-    endGame();
-  } else if (ship.landed) {
-    statusDiv.innerHTML = "LANDED - you win!";
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drawMeteors();
-    drawShip();
-    drawPlatform();
-    endGame();
+    checkCollision();
+    if (ship.crashed) {
+      statusDiv.innerHTML = "GAME OVER - crashed";
+      for (let i = 0; i < 100; i++) {
+        const prj = new Rect(ship.center.x, ship.center.y, 4, 4);
+        prj.color = `rgb(${Math.floor(Math.random() * 256)}, 0, 0)`;
+        const speed = Math.random() * 10;
+        const angle = Math.random() * Math.PI * 2;
+        prj.dx = Math.cos(angle) * speed;
+        prj.dy = Math.sin(angle) * speed;
+        prjs.push(prj);
+      }
+      endGame();
+    } else if (ship.landed) {
+      statusDiv.innerHTML = "LANDED - you win!";
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawMeteors();
+      drawShip();
+      drawPlatform();
+      endGame();
+    } else {
+      // Clear entire screen
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawMeteors();
+      drawShip();
+      drawPlatform();
+    }
   } else {
-    // Clear entire screen
+    // game has ended/stopped
+
+    updateMeteors();
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawMeteors();
-    drawShip();
+    // drawShip();
     drawPlatform();
-    requestAnimationFrame(gameLoop);
   }
+
+  requestAnimationFrame(gameLoop);
 }
 
 function keyLetGo(event) {
@@ -307,8 +340,6 @@ document.addEventListener("keyup", function (event) {
 });
 
 function start() {
-  // console.log("start", ship);
-  startBtn.disabled = true;
   statusDiv.innerHTML = "";
   initShip();
   initPlatform();
@@ -316,12 +347,15 @@ function start() {
 
   document.addEventListener("keyup", keyLetGo);
   document.addEventListener("keydown", keyPressed);
-  requestAnimationFrame(gameLoop);
+
+  startBtn.disabled = true;
 }
 
 function endGame() {
-  // console.log("endGame", ship);
   startBtn.disabled = false;
+
   document.removeEventListener("keyup", keyLetGo);
   document.removeEventListener("keydown", keyPressed);
 }
+
+requestAnimationFrame(gameLoop);
