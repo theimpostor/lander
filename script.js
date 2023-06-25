@@ -259,13 +259,13 @@ function gameLoop() {
     checkCollision();
     if (ship.crashed) {
       statusDiv.innerHTML = "GAME OVER - crashed";
-      for (let i = 0; i < 100; i++) {
+      for (let i = 0; i < 10; i++) {
         const prj = new Rect(ship.center.x, ship.center.y, 4, 4);
         prj.color = `rgb(${Math.floor(Math.random() * 256)}, 0, 0)`;
         const speed = Math.random() * 10;
         const angle = Math.random() * Math.PI * 2;
-        prj.dx = Math.cos(angle) * speed;
-        prj.dy = Math.sin(angle) * speed;
+        prj.dx = ship.dx + Math.cos(angle) * speed;
+        prj.dy = ship.dx + Math.sin(angle) * speed;
         prjs.push(prj);
       }
       endGame();
@@ -290,7 +290,9 @@ function gameLoop() {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawMeteors();
-    // drawShip();
+    if (ship.landed) {
+      drawShip();
+    }
     drawPlatform();
   }
 
