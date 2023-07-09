@@ -51,6 +51,9 @@ class Rect {
 // Projectiles list
 const prjs = [];
 
+// terrain, array of points
+const terrain = [];
+
 const ship = new Rect(0, 0, 8, 22);
 ship.color = "black";
 ship.dx = 0;
@@ -64,9 +67,29 @@ ship.landed = false;
 const platform = new Rect(190, 345, 20, 5);
 platform.color = "blue";
 
+terrain.push([0, 310]);
+terrain.push([100, 240]);
+terrain.push([platform.left, platform.bottom]); // platform bottom left
+terrain.push([platform.right, platform.bottom]); // platform bottom right
+terrain.push([300, 250]);
+terrain.push([350, 350]);
+terrain.push([400, 300]);
+
 function drawPlatform() {
   ctx.fillStyle = platform.color;
   ctx.fillRect(platform.x, platform.y, platform.w, platform.h);
+}
+
+function drawTerrain() {
+  ctx.beginPath();
+  ctx.moveTo(0, 400);
+  for (let i = 0; i < terrain.length; i++) {
+    ctx.lineTo(terrain[i][0], terrain[i][1]);
+  }
+  ctx.lineTo(400,400);
+  ctx.closePath();
+  ctx.fillStyle = 'gray';
+  ctx.fill();
 }
 
 function initShip() {
@@ -232,6 +255,7 @@ function gameLoop() {
     drawPrjs();
     drawShip();
     drawPlatform();
+    drawTerrain();
     requestAnimationFrame(gameLoop);
   }
 }
