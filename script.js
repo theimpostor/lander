@@ -14,6 +14,8 @@ const lzBuffer = 4;
 // projectiles
 const prjs = [];
 
+const terrain = [];
+
 class Rect {
   constructor(x, y, w, h) {
     this.x = x;
@@ -73,6 +75,16 @@ function initPlatform() {
   platform.y = Math.floor(Math.random() * 50) + 340;
 }
 
+function initTerrain() {
+  terrain.length = 0;
+  terrain.push([0, 390]);
+  terrain.push([100, 280]);
+  terrain.push([platform.x, platform.y + platform.h]);
+  terrain.push([platform.x + platform.w, platform.y + platform.h]);
+  terrain.push([300, 340]);
+  terrain.push([400, 270]);
+}
+
 function initMeteors() {
   // truncate existing projectiles
   prjs.length = 0;
@@ -97,6 +109,10 @@ function drawTriangle(a, b, c, fillStyle) {
   ctx.fill();
 }
 
+function distance(a, b) {
+  return Math.hypot(a[0] - b[0], a[1] - b[1]);
+}
+
 function drawLine(a, b, style) {
   ctx.beginPath();
   // draw a line from a to b
@@ -109,6 +125,18 @@ function drawLine(a, b, style) {
 function drawPlatform() {
   ctx.fillStyle = platform.color;
   ctx.fillRect(platform.x, platform.y, platform.w, platform.h);
+}
+
+function drawTerrain() {
+  ctx.beginPath();
+  ctx.moveTo(0, 400);
+  for (let i = 0; i < terrain.length; i++) {
+    ctx.lineTo(terrain[i][0], terrain[i][1]);
+  }
+  ctx.lineTo(400, 400);
+  ctx.closePath();
+  ctx.fillStyle = "gray";
+  ctx.fill();
 }
 
 function drawMeteors() {
@@ -132,12 +160,12 @@ function drawShip() {
     drawLine(
       [ship.w * -0.5, ship.h * 0.5],
       [ship.w * -0.5, ship.h * 0.5 + lzBuffer],
-      ship.color
+      ship.color,
     );
     drawLine(
       [ship.w * 0.5, ship.h * 0.5],
       [ship.w * 0.5, ship.h * 0.5 + lzBuffer],
-      ship.color
+      ship.color,
     );
   } else {
     // Draw the flame if engine is on
@@ -146,7 +174,7 @@ function drawShip() {
         [ship.w * -0.5, ship.h * 0.5],
         [ship.w * 0.5, ship.h * 0.5],
         [0, ship.h * 0.5 + Math.random() * 10],
-        "orange"
+        "orange",
       );
     }
     if (ship.rightEngine) {
@@ -154,7 +182,7 @@ function drawShip() {
         [ship.w * 0.5, ship.h * -0.25],
         [ship.w * 0.5 + Math.random() * 10, 0],
         [ship.w * 0.5, ship.h * 0.25],
-        "orange"
+        "orange",
       );
     }
     if (ship.leftEngine) {
@@ -162,7 +190,7 @@ function drawShip() {
         [ship.w * -0.5, ship.h * -0.25],
         [ship.w * -0.5 - Math.random() * 10, 0],
         [ship.w * -0.5, ship.h * 0.25],
-        "orange"
+        "orange",
       );
     }
   }
@@ -233,6 +261,23 @@ function checkCollision() {
     }
   }
 
+  // check if hit terrain
+  for (let i = 0; i < terrain.length - 1; i++) {
+    const collideLen = distance(terrain[i], terrain[i + 1]) + 0.2;
+    if (
+      collideLen >
+        distance(terrain[i], [ship.left, ship.bottom]) +
+          distance(terrain[i + 1], [ship.left, ship.bottom]) ||
+      collideLen >
+        distance(terrain[i], [ship.right, ship.bottom]) +
+          distance(terrain[i + 1], [ship.right, ship.bottom])
+    ) {
+      // crashed into terrain!
+      ship.crashed = true;
+      return;
+    }
+  }
+
   if (
     // ship is not moving too fast
     ship.dy < 0.1 &&
@@ -275,6 +320,7 @@ function gameLoop() {
       drawMeteors();
       drawShip();
       drawPlatform();
+      drawTerrain();
       endGame();
     } else {
       // Clear entire screen
@@ -282,6 +328,7 @@ function gameLoop() {
       drawMeteors();
       drawShip();
       drawPlatform();
+      drawTerrain();
     }
   } else {
     // game has ended/stopped
@@ -294,6 +341,7 @@ function gameLoop() {
       drawShip();
     }
     drawPlatform();
+    drawTerrain();
   }
 
   requestAnimationFrame(gameLoop);
@@ -345,6 +393,7 @@ function start() {
   statusDiv.innerHTML = "";
   initShip();
   initPlatform();
+  initTerrain();
   initMeteors();
 
   document.addEventListener("keyup", keyLetGo);
