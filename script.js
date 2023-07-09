@@ -85,16 +85,20 @@ function initTerrain() {
   terrain.push([400, 270]);
 }
 
+function addMeteor() {
+  const prj = new Rect(Math.floor(Math.random() * 400), 0, 4, 4);
+  prj.color = "brown";
+  // velocity
+  prj.dx = 2 - Math.random() * 4;
+  prj.dy = Math.random() * 3;
+  prjs.push(prj);
+}
+
 function initMeteors() {
   // truncate existing projectiles
   prjs.length = 0;
-  for (let i = 0; i < 10; i++) {
-    const prj = new Rect(Math.floor(Math.random() * 400), 0, 4, 4);
-    prj.color = "brown";
-    // velocity
-    prj.dx = 2 - Math.random() * 4;
-    prj.dy = Math.random() * 3;
-    prjs.push(prj);
+  for (let i = 0; i < 3; i++) {
+    addMeteor();
   }
 }
 
@@ -297,6 +301,9 @@ function checkCollision() {
 
 function gameLoop() {
   if (startBtn.disabled) {
+    if (Math.random() * 100 < 2) {
+      addMeteor();
+    }
     // game is running
     updateMeteors();
     updateShip();
