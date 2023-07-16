@@ -75,6 +75,11 @@ terrain.push([300, 250]);
 terrain.push([350, 350]);
 terrain.push([400, 300]);
 
+// returns the distance between two points
+function distance(a, b) {
+  return Math.hypot(a[0] - b[0], a[1] - b[1]);
+}
+
 function drawPlatform() {
   ctx.fillStyle = platform.color;
   ctx.fillRect(platform.x, platform.y, platform.w, platform.h);
@@ -222,6 +227,8 @@ function checkCollision() {
       return;
     }
   }
+
+  // TODO: check if ship hit terrain
 
   // check if ship landed. If so, set ship.landed = true
   // - What conditions have to be true for a soft landing?
