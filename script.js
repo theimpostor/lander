@@ -229,6 +229,31 @@ function checkCollision() {
   }
 
   // TODO: check if ship hit terrain
+  for (let i = 0; i < terrain.length - 1; i++) {
+    const a = terrain[i];
+    const b = terrain[i + 1];
+    const l = [ship.left, ship.bottom]
+    const r = [ship.right, ship.bottom]
+
+    const abLen = distance(a, b)
+    const alLen = distance(a, l)
+    const arLen = distance(a, r)
+    const lbLen = distance(l, b)
+    const rbLen = distance(r, b)
+
+    const fudge = 0.1
+
+    if (abLen + fudge > alLen + lbLen) {
+      console.log('left corner crashed')
+      ship.crashed = true;
+      return;
+    }
+    if (abLen + fudge > arLen + rbLen) {
+      console.log('right corner crashed')
+      ship.crashed = true;
+      return;
+    }
+  }
 
   // check if ship landed. If so, set ship.landed = true
   // - What conditions have to be true for a soft landing?
